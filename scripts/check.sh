@@ -1,9 +1,11 @@
 #!/bin/sh
 # Kırpılmış kontrol: derleme + testler; sadece hata satırları. Kullanım: scripts/check.sh [TestFiltresi]
 cd "$(dirname "$0")/.." || exit 1
-out=$(swift build 2>&1); code=$?
-if [ $code -ne 0 ]; then
-  echo "build: BAŞARISIZ"; echo "$out" | grep -E "error:" | sed 's|^.*/Sources/|Sources/|' | sort -u | head -25; exit 1
+out=$(swift build 2>&1 | sed 's/\x1b\[[0-9;]*m//g'); code=$?
+out_status=$(swift build >/dev/null 2>&1; echo $?)
+if [ "$out_status" -ne 0 ]; then
+  # Sadece "dosya:satır:sütun: error: mesaj" satırları (renk kodu ve kaynak işaretçisi yok)
+  echo "build: BAŞARISIZ"; echo "$out" | grep -E "^/.*:[0-9]+:[0-9]+: error:" | sed 's|^.*/Sources/|Sources/|' | sort -u | head -20; exit 1
 fi
 echo "build: OK"
 if [ -n "$1" ]; then out=$(swift test --filter "$1" 2>&1); else out=$(swift test 2>&1); fi; code=$?
