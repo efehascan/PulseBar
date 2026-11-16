@@ -16,9 +16,51 @@ public final class SystemStore {
     public private(set) var downHistory: [Double] = []
     public private(set) var upHistory: [Double] = []
 
+    private let cpuMonitor = CPUMonitor()
+    private let memoryMonitor = MemoryMonitor()
+    private let gpuMonitor = GPUMonitor()
+    private let diskMonitor = DiskMonitor()
+    private let networkMonitor = NetworkMonitor()
+    private let systemInfoProvider = SystemInfoProvider()
+
+    private var timer: Timer?
+    private var refreshCount = 0
+
     public init() {}
-    public func start(interval: TimeInterval = 1) {}
-    public func stop() {}
+
+    public func start(interval: TimeInterval = 1) {
+        guard timer == nil else { return }
+        refresh()
+        let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.refresh() }
+        }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
+    }
+
+    public func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
     /// Bütün monitörleri bir kez örnekler (zamanlayıcı bunu çağırır)
-    public func refresh() {}
+    public func refresh() {
+        cpu = cpuMonitor.sample()
+        memory = memoryMonitor.sample()
+        gpu = gpuMonitor.sample()
+        disk = diskMonitor.sample()
+        network = networkMonitor.sample()
+
+        cpuHistory.append(cpu.usage)
+        downHistory.append(network.downPerSecond)
+        upHistory.append(network.upPerSecond)
+        if cpuHistory.count > 60 { cpuHistory.removeFirst(cpuHistory.count - 60) }
+        if downHistory.count > 60 { downHistory.removeFirst(downHistory.count - 60) }
+        if upHistory.count > 60 { upHistory.removeFirst(upHistory.count - 60) }
+
+        refreshCount += 1
+        if refreshCount % 10 == 1 {
+            info = systemInfoProvider.sample()
+        }
+    }
 }
