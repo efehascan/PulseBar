@@ -20,6 +20,7 @@ struct MetricRow: View {
                 if let detail {
                     Text(detail)
                         .font(.system(size: 10.5))
+                        .lineLimit(1)
                         .foregroundStyle(.secondary)
                 }
             }
@@ -28,13 +29,14 @@ struct MetricRow: View {
 
             Text(value)
                 .font(.system(size: 12.5))
+                .lineLimit(1)
                 .foregroundStyle(.secondary)
                 .monospacedDigit()
 
             Text(percent)
                 .font(.system(size: 12.5, weight: .medium))
                 .monospacedDigit()
-                .frame(minWidth: 44, alignment: .trailing)
+                .frame(minWidth: 74, alignment: .trailing)
         }
         .padding(.vertical, 3)
     }

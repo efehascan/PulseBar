@@ -78,14 +78,14 @@ struct PanelView: View {
                 title: "Disk",
                 value: "\(Fmt.bytes(store.disk.free)) boş",
                 percent: Fmt.percent(store.disk.usedPercent),
-                detail: "okuma \(Fmt.speed(store.disk.readPerSecond)) · yazma \(Fmt.speed(store.disk.writePerSecond))"
+                detail: "oku \(Fmt.speed(store.disk.readPerSecond)) · yaz \(Fmt.speed(store.disk.writePerSecond))"
             )
             MetricRow(
                 color: Theme.network,
                 title: "Ağ",
-                value: "↓ \(Fmt.speed(store.network.downPerSecond))  ↑ \(Fmt.speed(store.network.upPerSecond))",
-                percent: store.network.interface,
-                detail: "toplam ↓ \(Fmt.bytes(store.network.totalDown)) · ↑ \(Fmt.bytes(store.network.totalUp))"
+                value: "↓ \(Fmt.speed(store.network.downPerSecond))",
+                percent: "↑ \(Fmt.speed(store.network.upPerSecond))",
+                detail: "\(store.network.interface) · toplam ↓ \(Fmt.bytes(store.network.totalDown)) ↑ \(Fmt.bytes(store.network.totalUp))"
             )
         }
     }

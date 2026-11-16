@@ -8,6 +8,7 @@ struct PulseBarApp: App {
     init() {
         // Dock'ta görünmesin; sadece menü çubuğunda yaşar (paketlenmiş uygulamada LSUIElement de var)
         NSApplication.shared.setActivationPolicy(.accessory)
+        Task { @MainActor in Snapshot.runIfRequested() }
     }
 
     var body: some Scene {
