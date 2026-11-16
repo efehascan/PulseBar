@@ -21,6 +21,16 @@ Menü çubuğunda yaşayan, CPU, bellek, GPU, disk ve ağ kullanımını cam (Li
 - C API'lerinde bellek: `host_processor_info` dizisini `vm_deallocate` ile bırak, `getifaddrs` sonucunu `freeifaddrs` ile, IOKit nesnelerini `IOObjectRelease` ile.
 - Testleri değiştirme.
 
+## Test
+Hızlı, deterministik, güvenilir. Tam politika: Vardiya `kurallar/test-politikasi.md`.
+- Önce sadece değişikliğin etkilediği testleri çalıştır (`scripts/check.sh MonitorTests/testCPU` gibi); bütün paket sadece teslimden önce ya da arayüz / çok modüllü değişiklikte.
+- Testte keyfi bekleme (`sleep`, sabit gecikme) yok: zamanı enjekte et ya da koşul bekle. İstisna: gerçek donanım sayacı ölçen testler.
+- Test gerçek saate, rastgeleliğe, çalışma sırasına, paylaşılan duruma ya da ağa bağlı olmasın; geçici klasör ve sabit veri kullan.
+- Kararsız (flaky) test hata sayılır: geçsin diye yeniden çalıştırma, sebebini bul ve yaz.
+- Test başarısızsa: hata satırını oku, sebep üründe mi testte mi ortamda mı belirle, kök sebebi düzelt, sadece etkilenen testleri yeniden çalıştır.
+- Hız için asla: assertion silme, beklentiyi gevşetme, testi atlama ya da kapatma, hatayı gizleme, gerçek entegrasyon testini mock'la değiştirme.
+- Testleri değiştirmen gerekiyorsa (görev açıkça istemediyse) dur ve sor.
+
 ## Teslim
 - Bitince 1–3 cümle: ne yaptın, hangi dosya. Yapmadığın bir şeyi yaptım deme.
 
