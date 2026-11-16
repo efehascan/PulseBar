@@ -101,7 +101,7 @@ public final class CPUMonitor {
         let stride = Int(CPU_STATE_MAX)
         let count = Int(infoCount) / stride
         var ticks = [UInt32](repeating: 0, count: Int(infoCount))
-        ticks.withUnsafeMutableBufferPointer { buffer in
+        _ = ticks.withUnsafeMutableBufferPointer { buffer in
             memcpy(buffer.baseAddress, info, Int(infoCount) * MemoryLayout<UInt32>.stride)
         }
         var counts: [Counts] = []

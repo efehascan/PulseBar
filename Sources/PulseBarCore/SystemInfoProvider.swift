@@ -59,7 +59,7 @@ public final class SystemInfoProvider {
         guard let info = IOPSCopyPowerSourcesInfo()?.takeRetainedValue() else { return nil }
         let sources = IOPSCopyPowerSourcesList(info)?.takeRetainedValue() as? [CFTypeRef] ?? []
         for ps in sources {
-            guard let desc = IOPSGetPowerSourceDescription(info, ps) as? [String: Any] else { continue }
+            guard let desc = IOPSGetPowerSourceDescription(info, ps)?.takeUnretainedValue() as? [String: Any] else { continue }
             // Kapasite ve şarj bilgisini bir arada tutalım; biri eksikse kaynak atlanır.
             guard
                 let percent = (desc[kIOPSCurrentCapacityKey as String] as? NSNumber)?.intValue,
