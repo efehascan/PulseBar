@@ -1,0 +1,3 @@
+local_only=false      # true: gizli/müşteri projesi; Claude profilleri açılmaz
+default_mode=local    # claude | local
+review=gemma          # gemma | claude | both
