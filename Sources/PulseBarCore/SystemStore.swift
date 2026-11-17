@@ -22,6 +22,7 @@ public final class SystemStore {
     private let diskMonitor = DiskMonitor()
     private let networkMonitor = NetworkMonitor()
     private let systemInfoProvider = SystemInfoProvider()
+    private let processMonitor = ProcessMonitor()
 
     private var timer: Timer?
     private var refreshCount = 0
@@ -67,6 +68,26 @@ public final class SystemStore {
         if cpuHistory.count > 60 { cpuHistory.removeFirst(cpuHistory.count - 60) }
         if downHistory.count > 60 { downHistory.removeFirst(downHistory.count - 60) }
         if upHistory.count > 60 { upHistory.removeFirst(upHistory.count - 60) }
+
+        memoryHistory.append(memory.pressure)
+        gpuHistory.append(gpu.utilization ?? 0)
+        if memoryHistory.count > 60 { memoryHistory.removeFirst(memoryHistory.count - 60) }
+        if gpuHistory.count > 60 { gpuHistory.removeFirst(gpuHistory.count - 60) }
+
+        // Detay görünümü: sadece odak kategorisi için süreç/birim listesi güncellenir.
+        switch focus {
+        case .cpu:
+            topProcesses = processMonitor.topByCPU(limit: 6)
+        case .memory:
+            topProcesses = processMonitor.topByMemory(limit: 6)
+        case .network:
+            topProcesses = processMonitor.topByNetwork(limit: 6)
+        case .disk:
+            volumes = processMonitor.volumes()
+            topProcesses = []
+        case .gpu, .none:
+            topProcesses = []
+        }
 
         refreshCount += 1
         if refreshCount % 10 == 1 {
