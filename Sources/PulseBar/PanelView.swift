@@ -5,34 +5,53 @@ import PulseBarCore
 struct PanelView: View {
     let store: SystemStore
 
+    @State private var selected: MetricCategory? = nil
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            header
-            UsageBar(segments: segments)
-            rows
-            Divider()
-            footer
+        VStack(alignment: .leading, spacing: 10) {
+            if let selected {
+                DetailView(store: store, category: selected, onBack: goBack)
+            } else {
+                mainView
+            }
         }
-        .padding(16)
+        .padding(12)
         .frame(width: Theme.panelWidth)
-        .glassEffect(.regular, in: .rect(cornerRadius: 16))
+        .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .onDisappear {
+            selected = nil
+            store.focus = nil
+        }
     }
 
-    // MARK: - Üst blok
+    private func goBack() {
+        withAnimation(.easeOut(duration: 0.18)) {
+            selected = nil
+            store.focus = nil
+        }
+    }
+
+    // MARK: - Ana görünüm
+
+    private var mainView: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            header
+            UsageBar(segments: segments, height: 4)
+            rows
+            footer
+        }
+    }
 
     private var header: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        HStack(alignment: .firstTextBaseline) {
             Text("Sistem")
-                .font(.system(size: 15, weight: .semibold))
-            HStack {
-                Text("CPU \(Fmt.percent(store.cpu.usage))")
-                    .font(.system(size: 22, weight: .medium))
-                    .monospacedDigit()
-                Spacer()
-                Text(Fmt.bytes(store.memory.used) + " / " + Fmt.bytes(store.memory.total))
-                    .foregroundStyle(.secondary)
-                    .monospacedDigit()
-            }
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundStyle(.secondary)
+            Spacer()
+            Text("CPU \(Fmt.percent(store.cpu.usage))  ·  Bellek \(Fmt.percent(store.memory.pressure))")
+                .font(.system(size: 11))
+                .monospacedDigit()
+                .foregroundStyle(.secondary)
         }
     }
 
@@ -51,81 +70,94 @@ struct PanelView: View {
     // MARK: - Satırlar
 
     private var rows: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            MetricRow(
-                color: Theme.cpu,
-                title: "CPU",
-                value: "\(store.cpu.cores.count) çekirdek",
-                percent: Fmt.percent(store.cpu.usage),
-                detail: "kullanıcı \(Fmt.percent(store.cpu.user)) · sistem \(Fmt.percent(store.cpu.system))"
-            )
-            MetricRow(
-                color: Theme.memory,
-                title: "Bellek",
-                value: Fmt.bytes(store.memory.used),
-                percent: Fmt.percent(store.memory.pressure),
-                detail: "sıkıştırılmış \(Fmt.bytes(store.memory.compressed)) · swap \(Fmt.bytes(store.memory.swapUsed))"
-            )
-            MetricRow(
-                color: Theme.gpu,
-                title: "GPU",
-                value: store.gpu.name,
-                percent: Fmt.percent(store.gpu.utilization),
-                detail: store.gpu.memoryUsed.map { "bellek \(Fmt.bytes($0))" }
-            )
-            MetricRow(
-                color: Theme.disk,
-                title: "Disk",
-                value: "\(Fmt.bytes(store.disk.free)) boş",
-                percent: Fmt.percent(store.disk.usedPercent),
-                detail: "oku \(Fmt.speed(store.disk.readPerSecond)) · yaz \(Fmt.speed(store.disk.writePerSecond))"
-            )
-            MetricRow(
-                color: Theme.network,
-                title: "Ağ",
-                value: "↓ \(Fmt.speed(store.network.downPerSecond))",
-                percent: "↑ \(Fmt.speed(store.network.upPerSecond))",
-                detail: "\(store.network.interface) · toplam ↓ \(Fmt.bytes(store.network.totalDown)) ↑ \(Fmt.bytes(store.network.totalUp))"
-            )
+        VStack(spacing: 0) {
+            metricRow(.cpu)
+            metricRow(.memory)
+            metricRow(.gpu)
+            metricRow(.disk)
+            metricRow(.network)
+        }
+    }
+
+    @ViewBuilder
+    private func metricRow(_ category: MetricCategory) -> some View {
+        Group {
+            switch category {
+            case .cpu:
+                MetricRow(
+                    color: Theme.cpu,
+                    title: "CPU",
+                    value: "\(store.cpu.cores.count) çekirdek",
+                    percent: Fmt.percent(store.cpu.usage),
+                    detail: "kullanıcı \(Fmt.percent(store.cpu.user)) · sistem \(Fmt.percent(store.cpu.system))"
+                )
+            case .memory:
+                MetricRow(
+                    color: Theme.memory,
+                    title: "Bellek",
+                    value: Fmt.bytes(store.memory.used),
+                    percent: Fmt.percent(store.memory.pressure),
+                    detail: "sıkıştırılmış \(Fmt.bytes(store.memory.compressed)) · swap \(Fmt.bytes(store.memory.swapUsed))"
+                )
+            case .gpu:
+                MetricRow(
+                    color: Theme.gpu,
+                    title: "GPU",
+                    value: store.gpu.name,
+                    percent: Fmt.percent(store.gpu.utilization),
+                    detail: store.gpu.memoryUsed.map { "bellek \(Fmt.bytes($0))" }
+                )
+            case .disk:
+                MetricRow(
+                    color: Theme.disk,
+                    title: "Disk",
+                    value: "\(Fmt.bytes(store.disk.free)) boş",
+                    percent: Fmt.percent(store.disk.usedPercent),
+                    detail: "oku \(Fmt.speed(store.disk.readPerSecond)) · yaz \(Fmt.speed(store.disk.writePerSecond))"
+                )
+            case .network:
+                MetricRow(
+                    color: Theme.network,
+                    title: "Ağ",
+                    value: "↓ \(Fmt.speed(store.network.downPerSecond))",
+                    percent: "↑ \(Fmt.speed(store.network.upPerSecond))",
+                    detail: "\(store.network.interface) · toplam ↓ \(Fmt.bytes(store.network.totalDown)) ↑ \(Fmt.bytes(store.network.totalUp))"
+                )
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            withAnimation(.easeOut(duration: 0.18)) {
+                selected = category
+                store.focus = category
+            }
+            store.refresh()
         }
     }
 
     // MARK: - Alt bilgi
 
     private var footer: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text("\(store.info.chip) · \(store.info.osVersion)")
-            Text(infoLine2 + batteryLine)
-            HStack {
-                Spacer()
-                Button("Çık") {
-                    NSApplication.shared.terminate(nil)
-                }
-                .buttonStyle(.borderless)
-                .font(.system(size: 11))
+        HStack(alignment: .firstTextBaseline) {
+            Text("\(store.info.chip) · açık \(Fmt.uptime(store.info.uptime))\(batteryText)")
+                .font(.system(size: 10))
+                .foregroundStyle(.tertiary)
+                .lineLimit(1)
+            Spacer()
+            Button(action: { NSApplication.shared.terminate(nil) }) {
+                Image(systemName: "power")
+                    .font(.system(size: 10))
             }
+            .buttonStyle(.plain)
+            .foregroundStyle(.tertiary)
+            .help("PulseBar'dan çık")
         }
-        .font(.system(size: 11))
-        .foregroundStyle(.secondary)
     }
 
-    private var infoLine2: String {
-        "Açık \(Fmt.uptime(store.info.uptime)) · Isı \(thermalText)"
-    }
-
-    /// Pil yoksa boş; varsa " · Pil %N" (şarjdaysa " ⚡︎").
-    private var batteryLine: String {
+    /// Pil yoksa boş; varsa " · pil %N" (şarjdaysa "⚡︎" eki).
+    private var batteryText: String {
         guard let percent = store.info.batteryPercent else { return "" }
-        let suffix = store.info.isCharging == true ? " ⚡︎" : ""
-        return " · Pil %\(percent)\(suffix)"
-    }
-
-    private var thermalText: String {
-        switch store.info.thermal {
-        case .nominal:  return "normal"
-        case .fair:     return "ılık"
-        case .serious:  return "sıcak"
-        case .critical: return "kritik"
-        }
+        let suffix = store.info.isCharging == true ? "⚡︎" : ""
+        return " · pil %\(percent)\(suffix)"
     }
 }
