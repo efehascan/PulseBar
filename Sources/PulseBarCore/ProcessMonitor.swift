@@ -52,7 +52,7 @@ public final class ProcessMonitor {
     /// Bağlı yerel birimler (kök birim önce)
     public func volumes() -> [VolumeUsage] {
         let keys: [URLResourceKey] = [.volumeNameKey, .volumeTotalCapacityKey,
-                                     .volumeAvailableCapacityForImportantUsageKey, .volumeIsLocalKey]
+                                     .volumeAvailableCapacityForImportantUsageKey, .volumeIsLocalKey, .volumeIsReadOnlyKey]
         guard let urls = FileManager.default.mountedVolumeURLs(
             includingResourceValuesForKeys: keys, options: [.skipHiddenVolumes]) else { return [] }
 
@@ -60,6 +60,8 @@ public final class ProcessMonitor {
         for url in urls {
             guard let values = try? url.resourceValues(forKeys: Set(keys)) else { continue }
             guard values.volumeIsLocal ?? false else { continue }
+            // Salt okunur birimler (bağlı .dmg kurulum imajları) listelenmez; kök birim her zaman kalır
+            if (values.volumeIsReadOnly ?? false) && url.path != "/" { continue }
             let total = values.volumeTotalCapacity ?? 0
             let free = values.volumeAvailableCapacityForImportantUsage ?? 0
             let name = values.volumeName ?? url.lastPathComponent

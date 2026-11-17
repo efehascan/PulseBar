@@ -14,7 +14,15 @@ enum Snapshot {
         store.refresh()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             store.refresh()
-            let view = PanelView(store: store)
+            var detail: MetricCategory? = nil
+            if let d = args.firstIndex(of: "--detail"), d + 1 < args.count { detail = MetricCategory(rawValue: args[d + 1]) }
+            if let detail { store.focus = detail; store.refresh(); Thread.sleep(forTimeInterval: 1.0); store.refresh() }
+            let view = Group {
+                if let detail {
+                    DetailView(store: store, category: detail, onBack: {})
+                        .padding(12).frame(width: Theme.panelWidth).glassEffect(.regular, in: .rect(cornerRadius: 14))
+                } else { PanelView(store: store) }
+            }
                 .padding(24)
                 .background(Color(nsColor: .windowBackgroundColor))
                 .environment(\.colorScheme, args.contains("--dark") ? .dark : .light)

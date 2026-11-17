@@ -88,6 +88,7 @@ struct DetailView: View {
         LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 6) {
             ForEach(statItems, id: \.label) { item in
                 StatCell(label: item.label, value: item.value)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             }
         }
     }
