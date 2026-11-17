@@ -37,10 +37,15 @@ public final class SystemStore {
     /// Disk odağında bağlı birimler
     public private(set) var volumes: [VolumeUsage] = []
 
+    /// Panel açık mı. Kapalıyken yalnızca menü çubuğundaki CPU ve ağ her saniye ölçülür;
+    /// bellek, GPU ve disk 5 saniyede bir (gereksiz iş ve yeniden çizim olmasın).
+    public var panelOpen = true
+
     public init() {}
 
     public func start(interval: TimeInterval = 1) {
         guard timer == nil else { return }
+        panelOpen = false
         refresh()
         let t = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.refresh() }
@@ -56,11 +61,14 @@ public final class SystemStore {
 
     /// Bütün monitörleri bir kez örnekler (zamanlayıcı bunu çağırır)
     public func refresh() {
+        let full = panelOpen || refreshCount % 5 == 0
         cpu = cpuMonitor.sample()
-        memory = memoryMonitor.sample()
-        gpu = gpuMonitor.sample()
-        disk = diskMonitor.sample()
         network = networkMonitor.sample()
+        if full {
+            memory = memoryMonitor.sample()
+            gpu = gpuMonitor.sample()
+            disk = diskMonitor.sample()
+        }
 
         cpuHistory.append(cpu.usage)
         downHistory.append(network.downPerSecond)
@@ -69,10 +77,12 @@ public final class SystemStore {
         if downHistory.count > 60 { downHistory.removeFirst(downHistory.count - 60) }
         if upHistory.count > 60 { upHistory.removeFirst(upHistory.count - 60) }
 
-        memoryHistory.append(memory.pressure)
-        gpuHistory.append(gpu.utilization ?? 0)
-        if memoryHistory.count > 60 { memoryHistory.removeFirst(memoryHistory.count - 60) }
-        if gpuHistory.count > 60 { gpuHistory.removeFirst(gpuHistory.count - 60) }
+        if full {
+            memoryHistory.append(memory.pressure)
+            gpuHistory.append(gpu.utilization ?? 0)
+            if memoryHistory.count > 60 { memoryHistory.removeFirst(memoryHistory.count - 60) }
+            if gpuHistory.count > 60 { gpuHistory.removeFirst(gpuHistory.count - 60) }
+        }
 
         // Detay görünümü: sadece odak kategorisi için süreç/birim listesi güncellenir.
         switch focus {

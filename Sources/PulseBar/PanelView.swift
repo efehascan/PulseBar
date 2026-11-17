@@ -18,7 +18,12 @@ struct PanelView: View {
         .padding(12)
         .frame(width: Theme.panelWidth)
         .glassEffect(.regular, in: .rect(cornerRadius: 14))
+        .onAppear {
+            store.panelOpen = true
+            store.refresh()                 // açılınca bellek/GPU/disk hemen güncel olsun
+        }
         .onDisappear {
+            store.panelOpen = false
             selected = nil
             store.focus = nil
         }
