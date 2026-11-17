@@ -9,5 +9,5 @@ enum Theme {
     static let network = Color(red: 0.62, green: 0.48, blue: 0.86)  // mor
     static let muted = Color.secondary
     static let track = Color.primary.opacity(0.10)
-    static let panelWidth: CGFloat = 400
+    static let panelWidth: CGFloat = 300
 }

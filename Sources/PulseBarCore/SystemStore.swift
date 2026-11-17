@@ -26,6 +26,16 @@ public final class SystemStore {
     private var timer: Timer?
     private var refreshCount = 0
 
+    /// Detay görünümü için ek geçmiş (son 60 örnek): bellek %, GPU %
+    public private(set) var memoryHistory: [Double] = []
+    public private(set) var gpuHistory: [Double] = []
+    /// Detay açıkken odaklanılan kategori; nil ise süreç listesi güncellenmez (gereksiz iş yok)
+    public var focus: MetricCategory? = nil
+    /// Odak kategorisinin en çok kullanan süreçleri (cpu, memory, network); disk ve gpu için boş
+    public private(set) var topProcesses: [ProcessUsage] = []
+    /// Disk odağında bağlı birimler
+    public private(set) var volumes: [VolumeUsage] = []
+
     public init() {}
 
     public func start(interval: TimeInterval = 1) {

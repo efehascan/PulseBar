@@ -26,3 +26,17 @@ son doğrulama: (ilk commit)
 ## Arayüz
 - Cam: `.glassEffect(.regular, in: .rect(cornerRadius: 16))` (macOS 26). Panel arka planı cam, satırlar sade.
 - Görsel dil: başlık + büyük yüzde + sağda "kullanılan / toplam", altında parçalı çubuk, altında satırlar: renkli kare · ad · değer · yüzde (sağa yaslı, `monospacedDigit`).
+
+## Detay görünümü (v2)
+- `Models.swift`: `MetricCategory` (cpu, memory, gpu, disk, network), `ProcessUsage`, `VolumeUsage`.
+- `ProcessMonitor.swift`: `topByCPU/topByMemory/topByNetwork(limit:)`, `volumes()`, `static parsePS`, `static parseNettop`.
+  - Süreçler: `/bin/ps -axo pid=,pcpu=,rss=,comm=` (rss KB; pcpu Türkçe yerelde virgüllü olabilir: "," → "."); ad = komutun son yol parçası (boşluk içerebilir).
+  - Ağ: `/usr/bin/nettop -P -L 1 -x -J bytes_in,bytes_out` → satırlar "ad.pid,gelen,giden," (ilk satır başlık); hız = önceki çağrıya göre fark / süre.
+  - Birimler: `FileManager.default.mountedVolumeURLs(includingResourceValuesForKeys:options: [.skipHiddenVolumes])`, yerel olanlar; "/" önce.
+- `SystemStore`: `focus` nil değilse `refresh()` odak kategorisinin süreçlerini (`topProcesses`, en çok 6) ya da birimleri (`volumes`) de günceller. `memoryHistory`, `gpuHistory` (60).
+- Arayüz: `PanelView` satıra tıklayınca `DetailView(category:)` gösterir (panelin içinde, geri düğmesiyle); `Sparkline` geçmiş grafiği.
+
+## Görsel dil (v2: sade ve küçük)
+- Panel 300 pt, dolgu 12, köşe 14, cam. Yazılar küçük: başlık 11 semibold `.secondary`, satır 11.5, değer 11 `.secondary`, yüzde 11 medium; hepsi `monospacedDigit`.
+- Satır yüksekliği ~24, renkli kare 7×7 köşe 2, satırlar arası ince ayırıcı yok; üstüne gelince hafif arka plan (`Color.primary.opacity(0.06)`, köşe 6) ve sağda küçük `chevron.right`.
+- Detay: üstte "‹ Sistem" geri düğmesi (11), kategori adı 13 semibold + büyük değer 20 light, `Sparkline` (yükseklik 36), sonra 2 sütunlu küçük istatistikler, sonra süreç listesi (ad · değer · ince oransal çubuk).

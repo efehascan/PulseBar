@@ -101,3 +101,31 @@ public struct SystemInfo: Equatable, Sendable {
 public enum ThermalLevel: String, Sendable {
     case nominal, fair, serious, critical
 }
+
+/// Paneldeki kategoriler; detay görünümü bunlardan birine odaklanır.
+public enum MetricCategory: String, CaseIterable, Sendable {
+    case cpu, memory, gpu, disk, network
+}
+
+/// Bir sürecin kullanımı (detay görünümündeki "en çok kullananlar" listesi).
+public struct ProcessUsage: Equatable, Sendable, Identifiable {
+    public var id: Int32            // pid
+    public var name: String         // komutun son yol parçası, ör. "WindowServer"
+    public var cpu: Double          // %, tek çekirdek = 100 (ps'in pcpu'su)
+    public var memory: UInt64       // bayt (RSS)
+    public var downPerSecond: Double  // ağ, bayt/sn (sadece ağ listesinde dolu)
+    public var upPerSecond: Double
+    public init(id: Int32, name: String, cpu: Double = 0, memory: UInt64 = 0, downPerSecond: Double = 0, upPerSecond: Double = 0) {
+        self.id = id; self.name = name; self.cpu = cpu; self.memory = memory
+        self.downPerSecond = downPerSecond; self.upPerSecond = upPerSecond
+    }
+}
+
+/// Bağlı bir birim (disk detayı).
+public struct VolumeUsage: Equatable, Sendable, Identifiable {
+    public var id: String           // yol
+    public var name: String
+    public var total: UInt64
+    public var free: UInt64
+    public init(id: String, name: String, total: UInt64, free: UInt64) { self.id = id; self.name = name; self.total = total; self.free = free }
+}
