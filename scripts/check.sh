@@ -5,7 +5,7 @@ out=$(swift build 2>&1 | sed 's/\x1b\[[0-9;]*m//g'); code=$?
 out_status=$(swift build >/dev/null 2>&1; echo $?)
 if [ "$out_status" -ne 0 ]; then
   # Sadece "dosya:satır:sütun: error: mesaj" satırları (renk kodu ve kaynak işaretçisi yok)
-  echo "build: BAŞARISIZ"; echo "$out" | grep -E "^/.*:[0-9]+:[0-9]+: error:" | sed 's|^.*/Sources/|Sources/|' | sort -u | head -20; exit 1
+  echo "build: BAŞARISIZ"; echo "$out" | grep -E "^/.*:[0-9]+:[0-9]+: error:|^error: /.*:[0-9]+:[0-9]+ " | sed -e 's|^error: ||' -e 's|^.*/Sources/|Sources/|' | sort -u | head -20; exit 1
 fi
 warn=$(echo "$out" | grep -E "^/.*:[0-9]+:[0-9]+: warning:" | sed 's|^.*/Sources/|Sources/|' | sort -u)
 if [ -n "$warn" ]; then
