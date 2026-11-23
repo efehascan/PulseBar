@@ -1,3 +1,18 @@
 local_only=false      # true: gizli/müşteri projesi; Claude profilleri açılmaz
 default_mode=local    # claude | local
 review=gemma          # gemma | claude | both
+# Proje bazlı modüller (Shift Architecture mimari/12)
+protected=on
+scenarios=on
+questions=on
+layers=on
+manifest=warn
+lessons=on
+lang=tr
+pending_branch=off
+flags=off
+parity=off
+release_gate=off
+triage=off
+full_tests=on
+parallel=off

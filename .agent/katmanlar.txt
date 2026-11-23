@@ -1,0 +1,3 @@
+# Katman kuralı (agent run yalnızca YENİ import'ları denetler)
+Sources/PulseBarCore/ -> SwiftUI
+Sources/PulseBarCore/ -> AppKit
